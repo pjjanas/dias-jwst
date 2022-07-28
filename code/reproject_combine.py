@@ -15,13 +15,14 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import glob # for filepath handling
 
-# Astropy and CCD:
+# Astropy:
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.visualization import LinearStretch, LogStretch, ZScaleInterval, \
     MinMaxInterval, make_lupton_rgb
 import reproject as rpj
 
+# Functions
 def plot_image(image, norm=False, axis=True, dpi=300): # convenience function
     plt.figure(figsize=(10,10), dpi=dpi)
     plt.imshow(image, origin='lower')
