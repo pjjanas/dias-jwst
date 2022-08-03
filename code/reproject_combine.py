@@ -174,7 +174,7 @@ target_file = directory + 'jw02731-o001_t017_nircam_clear-f335m_i2d.fits'
 target = fits.open(target_file)
 
 # get data and science headers
-# tar_sci_data = fits.getdata(target_file, 'SCI')
+tar_sci_data = fits.getdata(target_file, 'SCI')
 tar_sci_header = fits.getheader(target_file, 1)
 
 list_fits_files = glob.glob(directory+'*nircam*') # get all NIRCam images in list
@@ -188,7 +188,7 @@ target_wcs = WCS(tar_sci_header) # get target WCS info
 #                        anti_aliasing=True)
 #     resized_images.append(new_image)
     
-reprojected = reproject(list_fits_files) # get reprojected image arrays
+reprojected = reproject(list_fits_files, tar_sci_data) # get reprojected image arrays
 
 # ================================TESTING======================================
 # 
@@ -211,9 +211,3 @@ reprojected = reproject(list_fits_files) # get reprojected image arrays
 # # ax2.set_title('Reprojected Image')
 # 
 # =============================================================================
-
-
-
-
-
-
