@@ -14,6 +14,14 @@ astropy=5.1
 # Use
 Current usage is running `reproject_combine.py` with desired directory, target data etc. to get reprojected images and load functions. Then can run specific desired tasks such as making a 3-colour image using `make_rgb()` from the console. Transformed images can also be made making use of `astropy.visualization` using the `images_transform()` function or use `config_stretches.py` for custom transformations.
 
+Examples of images produced using `make_rgb()`:
+
+<img src="https://user-images.githubusercontent.com/81090178/182904964-8670ae3f-53c4-4b83-ba3c-e813f129b6ac.png" width=75% height=75%>
+<img src="https://user-images.githubusercontent.com/81090178/182905953-e6aa4cfb-12e1-44f6-99b8-42af8bf85ca2.jpg" width=75% height=75%>
+<img src="https://user-images.githubusercontent.com/81090178/182910159-41b22a51-600b-4446-807f-7a0449172516.png" width=75% height=75%>
+
+
+
 # Programs 
 ## `reproject_combine.py`
 This program reads in a target image and a list of images to reproject via WCS information onto the target WCS. Need to set your own working directory using `directory` variable. `glob` is utilised here for Unix based file handling; e.g. to get all NIRCam images use `glob.glob(directory+'*nircam*')`. 
