@@ -23,8 +23,8 @@ from astropy.visualization import LinearStretch, LogStretch, ZScaleInterval, \
 import reproject as rpj
 
 # Functions
-def plot_image(image, norm=False, axis=True, dpi=300): # convenience function
-    plt.figure(figsize=(10,10), dpi=dpi)
+def plot_image(image, norm=False, axis=True): # convenience function
+    plt.figure(figsize=(12,8))
     plt.imshow(image, origin='lower')
     
     if norm:
