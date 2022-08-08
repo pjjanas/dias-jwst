@@ -4,6 +4,9 @@
 Created on Fri Aug  5 17:46:56 2022
 
 @author: Pawel Janas (Python Python 3.9.12)
+
+Description: This program performs continuum subtraction on NIRCam images from
+JWST for detection of protostellar outflows.
 """
 
 import numpy as np
@@ -40,7 +43,7 @@ cont_data, cont_header = open_fits(c_name)
 # c_dat_flat = cont_data.flatten() # flatten for plotting
 
 # open narrowband file
-n_name = glob.glob(directory+'*f187n*')[0]
+n_name = glob.glob(directory+'*f444w-f470n*')[0]
 narrow_dat, narrow_head = open_fits(n_name)
 # n_dat_flat = narrow_dat.flatten()
 
@@ -50,3 +53,8 @@ reproj = reproject(list_files, target_wcs, cont_data)
 
 c_dat_flat = reproj[0].flatten()
 n_dat_flat = reproj[1].flatten()
+
+# scale the continuum data and subtract
+scale_factor = 2
+new_c_dat = reproj[0] * scale_factor
+subc = reproj[1] - new_c_dat
