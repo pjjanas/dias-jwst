@@ -18,12 +18,10 @@ import sys
 # Astropy:
 from astropy.io import fits
 from astropy.wcs import WCS
-from astropy.visualization import LinearStretch, LogStretch, ZScaleInterval, \
-    MinMaxInterval, make_lupton_rgb
-import reproject as rpj
+import reproject as rpj # needed for reproject module
 
 sys.path.append('../code')
-from reproject_combine import reproject, make_rgb
+from reproject_combine import reproject
 
 def open_fits(fname):
     """ Convenience function for reading in fits files, getting data and
@@ -34,27 +32,69 @@ def open_fits(fname):
     
     return data, header
 
-directory = '/mnt/d/st_images/Carina_level3/'
-files = glob.glob(directory + '*i2d.fits')
-
-# open continuum file from NIRCam (f444w-f470n)
-c_name = glob.glob(directory+'*f444w_i2d.fits')[0]
-cont_data, cont_header = open_fits(c_name)
-# c_dat_flat = cont_data.flatten() # flatten for plotting
-
-# open narrowband file
-n_name = glob.glob(directory+'*f444w-f470n*')[0]
-narrow_dat, narrow_head = open_fits(n_name)
-# n_dat_flat = narrow_dat.flatten()
-
-list_files = [c_name, n_name]
-target_wcs = WCS(cont_header)
-reproj = reproject(list_files, target_wcs, cont_data)
-
-c_dat_flat = reproj[0].flatten()
-n_dat_flat = reproj[1].flatten()
-
-# scale the continuum data and subtract
-scale_factor = 2
-new_c_dat = reproj[0] * scale_factor
-subc = reproj[1] - new_c_dat
+class ContinuumSubtract:
+    def __init__(self, narrowband_file, continuum_file):
+        self.narrowband_file = narrowband_file
+        self.continuum_file = continuum_file
+        
+    def get_data_headers(self, get_data=True, get_headers=True):
+        c_dat, c_header = open_fits(self.continuum_file)
+        n_dat, n_header = open_fits(self.narrowband_file)
+        if get_data and get_headers:
+            return c_dat, c_header, n_dat, n_header
+        elif get_data:
+            return c_dat, n_dat
+        elif get_headers:
+            return c_header, n_header
+        else:
+            print("You didn't select get_data or get_headers so the function \
+returned None")
+        
+    def reproject_continuum(self):
+        """ Reproject continuum data onto narrowband data and also resizes them 
+        to match. Resizes to the smaller image for memory conservation. Returns
+        list of reprojected data."""
+        list_files = [self.continuum_file, self.narrowband_file]
+        # get target wcs
+        with fits.open(self.narrowband_file) as hdu:
+            target_header = hdu['SCI'].header
+            n_data = hdu['SCI'].data
+        with fits.open(self.continuum_file) as hdu:
+            c_data = hdu['SCI'].data
+        
+        # select smaller data to be target out shape
+        if n_data.size < c_data.size:
+            target_data = n_data
+        else:
+            target_data = c_data
+            
+        target_wcs = WCS(target_header)
+        reprojected = reproject(list_files, target_wcs, target_data)
+        return reprojected
+    
+    def continuum_sub(self, reprojected_images, scale_factor):
+        """ Subtracts continuum from narrowband data. Requires image data to be
+        equal sized. Use reproject_continuum() to get equal sized images."""
+        c_dat = reprojected_images[0] * scale_factor
+        subc = reprojected_images[1] - c_dat
+        return subc
+    
+    
+# ==============================TESTING========================================
+#         
+# directory = '/mnt/d/st_images/Carina_level3/'
+# #files = glob.glob(directory + '*i2d.fits')
+# 
+# # Continuum file from NIRCam (f444w)
+# c_name = glob.glob(directory+'*f444w_i2d.fits')[0]
+# 
+# # Narrowband file name (NIRCam f444w-f470n)
+# n_name = glob.glob(directory+'*f444w-f470n*')[0]
+# 
+# test = ContinuumSubtract(n_name, c_name)
+# reproj = test.reproject_continuum()
+# 
+# scale_factor = 2
+# subc = test.continuum_sub(reproj, 2)
+# 
+# =============================================================================
