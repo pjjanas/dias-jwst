@@ -72,6 +72,32 @@ returned None")
         reprojected = reproject(list_files, target_wcs, target_data)
         return reprojected
     
+    def func(x, m, c):
+        """ Equation of line function to be called when m (slope) and c 
+        (intersect) are obtained."""
+        return m * x + c
+    
+    def get_line_params(self, region1, region2, c_dat, n_dat):
+        """ Calculates the scale factor to be applied for continuum subtraction
+        based on line fit model to n_dat vs. c_dat. Regions relate to parts of
+        image (one on cloud and one off). N.B: Regions must be string slices.
+        Example of region:
+            region1 = "slice(3000,4000), slice(1000,1600)" """
+        # stack arrays
+        c_stack = np.append(c_dat[eval(region1)], c_dat[eval(region2)])
+        n_stack = np.append(n_dat[eval(region1)], n_dat[eval(region2)])
+        # mask continuum array for 0 and NaN entries
+        mask = (c_stack<=0) | (np.isnan(c_stack))
+        c_stack = np.ma.array(c_stack, mask=mask)
+        
+        c_flat = c_stack.flatten()
+        n_flat = n_stack.flatten()
+        
+        # fit line
+        m, c = np.ma.polyfit(c_flat, n_flat, deg=1)
+        return m, c, c_flat, n_flat
+        
+    
     def continuum_sub(self, reprojected_images, scale_factor):
         """ Subtracts continuum from narrowband data. Requires image data to be
         equal sized. Use reproject_continuum() to get equal sized images."""
@@ -79,22 +105,27 @@ returned None")
         subc = reprojected_images[1] - c_dat
         return subc
     
-    
 # ==============================TESTING========================================
-#         
+        
 # directory = '/mnt/d/st_images/Carina_level3/'
 # #files = glob.glob(directory + '*i2d.fits')
-# 
+
 # # Continuum file from NIRCam (f444w)
 # c_name = glob.glob(directory+'*f444w_i2d.fits')[0]
-# 
+
 # # Narrowband file name (NIRCam f444w-f470n)
 # n_name = glob.glob(directory+'*f444w-f470n*')[0]
-# 
+
 # test = ContinuumSubtract(n_name, c_name)
 # reproj = test.reproject_continuum()
-# 
-# scale_factor = 2
-# subc = test.continuum_sub(reproj, 2)
-# 
+
+# f = test.get_data_headers()
+# c_dat, c_header = f[:2]
+# n_dat, n_header = f[2:]
+# del f # delete f object for memory consvervation
+
+# mask = (np.isnan(reproj[0])) & (reproj[0] == 0)
+# # scale_factor = 2
+# # subc = test.continuum_sub(reproj, 2)
+
 # =============================================================================
