@@ -20,6 +20,9 @@ from astropy.io import fits
 from astropy.wcs import WCS
 import reproject as rpj # needed for reproject module
 
+# Sci-kit learn for KMeans clustering (outlier removal)
+from sklearn.cluster import KMeans
+
 sys.path.append('../code')
 from reproject_combine import reproject
 
@@ -31,6 +34,46 @@ def open_fits(fname):
         header = hdu['SCI'].header
     
     return data, header
+
+def remove_outliers(c_dat, n_dat, n_clusters=8, max_labels=2):
+    """
+    Function for removing outliers using KMeans cluster algorithm.
+
+    Parameters
+    ----------
+    c_dat : 1D array (masked)
+        Masked array of flattened, masked continuum data.
+    n_dat : 1D array (masked)
+        Masked array of flattened, masked narrowband data.
+    n_clusters : int, optional
+        The number of clusters to form as well as the number of centroids 
+        to generate for the KMeans algorithm. The default is 8.
+    max_labels : int, optional
+        The max label number (cluster number) to gather final data points 
+        from. Higher values result it more outliers. Must be <= n_clusters.
+        The default is 2.
+
+    Returns
+    -------
+    cluster_data[:,0] : array
+        1D array of continuum data with outliers removed.
+    cluster_data[:,1] : array
+        1D array of narrowband data with outliers removed.
+
+    """
+    if max_labels > n_clusters:
+        print("n_clusters < max_labels. Make sure max_labels < \
+n_clusters. Reverting to defaults...")
+        n_clusters=8
+        max_labels=2
+        
+    # Perform KMeans cluster algo
+    cluster_data = np.ma.vstack((c_dat, n_dat)).T
+    k_means = KMeans(n_clusters=n_clusters).fit(cluster_data)
+    labels = k_means.labels_
+    cluster_data = cluster_data[np.where(labels <= max_labels)]
+    
+    return cluster_data[:,0], cluster_data[:,1]
 
 class ContinuumSubtract:
     def __init__(self, narrowband_file, continuum_file):
@@ -76,8 +119,9 @@ returned None")
         """ Equation of line function to be called when m (slope) and c 
         (intersect) are obtained."""
         return m * x + c
-    
-    def get_line_params(self, region1, region2, c_dat, n_dat):
+        
+    def get_line_params(self, region1, region2, c_dat, n_dat, \
+                        rm_outliers=True, n_clusters=8, max_labels=2):
         """ Calculates the scale factor to be applied for continuum subtraction
         based on line fit model to n_dat vs. c_dat. Regions relate to parts of
         image (one on cloud and one off). N.B: Regions must be string slices.
@@ -87,12 +131,18 @@ returned None")
         c_stack = np.append(c_dat[eval(region1)], c_dat[eval(region2)])
         n_stack = np.append(n_dat[eval(region1)], n_dat[eval(region2)])
         # mask continuum array for 0 and NaN entries
-        mask = (c_stack<=0) | (np.isnan(c_stack))
-        c_stack = np.ma.array(c_stack, mask=mask)
+        cmask = (c_stack<=0) | (np.isnan(c_stack))
+        nmask = n_stack==0
+        c_stack = np.ma.array(c_stack, mask=cmask)
+        n_stack = np.ma.array(n_stack, mask=nmask)
         
         c_flat = c_stack.flatten()
         n_flat = n_stack.flatten()
         
+        if rm_outliers: # remove outliers and remake c_flat, n_flat arrays
+            c_flat, n_flat = remove_outliers(c_flat, n_flat, n_clusters, max_labels)
+        else:
+            pass
         # fit line
         m, c = np.ma.polyfit(c_flat, n_flat, deg=1)
         return m, c, c_flat, n_flat
@@ -119,13 +169,22 @@ returned None")
 # test = ContinuumSubtract(n_name, c_name)
 # reproj = test.reproject_continuum()
 
-# f = test.get_data_headers()
-# c_dat, c_header = f[:2]
-# n_dat, n_header = f[2:]
-# del f # delete f object for memory consvervation
+# # f = test.get_data_headers()
+# # c_dat, c_header = f[:2]
+# # n_dat, n_header = f[2:]
+# # del f # delete f object for memory consvervation
 
-# mask = (np.isnan(reproj[0])) & (reproj[0] == 0)
-# # scale_factor = 2
-# # subc = test.continuum_sub(reproj, 2)
+# def func(x, m, c):
+#     """ Equation of line function to be called when m (slope) and c (intersect) are obtained."""
+#     return m * x + c
+
+# # setup regions for continuum subtract calculations
+# region1 = "slice(3000,4000), slice(1000,1600)"
+# region2 = "slice(4000,5000), slice(3000,3600)"
+
+# m, c_, c_flat, n_flat = test.get_line_params(region1, region2, reproj[0], \
+#                                             reproj[1], rm_outliers=True, max_labels=2)
+# print('Line parameters:')
+# print(f'Slope: {m}', f'Intersect: {c_}')
 
 # =============================================================================
