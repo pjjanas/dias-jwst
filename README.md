@@ -9,6 +9,7 @@ matplotlib=3.5.2
 glob
 astropy=5.1
 scikit-learn=1.1.2
+pandas
 ipympl # for jupyter notebook plot interaction
 ```
 ***Note:*** This list is a work in progress so keep an eye on packages used to see if you need to install new ones.
