@@ -43,8 +43,36 @@ def get_coordinates(path_to_excel_file, focus):
     
     return coords
 
-def pixel_region(pixel_x, pixel_y, x_plusminus, y_plusminus, custom_bounds=None):
-    """ Custom bounds are of the format: [xminus, xplus, yminus, yplus]."""
+def pixel_region(pixel_x, pixel_y, x_plusminus=300, y_plusminus=300, 
+                 custom_bounds=None):
+    """
+    Function for defining a pixel region around some focus (pixel_x, pixel_y). 
+    Custom bounds are of the format: 
+    custom_bounds=[xminus, xplus, yminus, yplus].
+
+    Parameters
+    ----------
+    pixel_x : int
+        The x pixel number of the focus point.
+    pixel_y : int
+        The y pixel number of the focus point.
+    x_plusminus : int, optional
+        The area in pixels to keep to the left and right of the focus point. 
+        The default is 300.
+    y_plusminus : int, optional
+        The area in pixels to keep to the top and bottom of the focus point. 
+        The default is 300.
+    custom_bounds : list, array, optional
+        If custom cropping is required. List takes the form of:
+        custom_bounds = [left, right, bottom, top]. The default is None.
+
+    Returns
+    -------
+    region : TYPE
+        DESCRIPTION.
+
+    """
+    
     if isinstance(custom_bounds, (list, np.ndarray)):
         region = f"slice({pixel_y} - {custom_bounds[2]}, {pixel_y} + {custom_bounds[3]}), \
             slice({pixel_x} - {custom_bounds[0]}, {pixel_x} + {custom_bounds[1]})"
