@@ -33,7 +33,7 @@ def plot_image(image, norm=False, axis=True): # convenience function
     if axis==False:
         plt.axis('off')
 
-def reproject(list_fits_files, target_wcs, target_data):
+def reproject(list_fits_files, target_wcs, target_data, hdu_index=1):
     """
     Reprojects and resizes list of fits files onto some target image with WCS 
     information.
@@ -42,8 +42,14 @@ def reproject(list_fits_files, target_wcs, target_data):
     ----------
     list_fits_files : list
         List of fits files to reproject onto target WCS.
+    target_wcs : WCS object of Astropy's module
+        Target world coordinate system (WCS) onto which the images will be 
+        projected.
     target_data : array
         2D array of target image data.
+    hdu_index : int
+        The hdu index to use for gathering data for reprojection. Default is 1
+        (corresponds to 'SCI').
         
     Returns
     -------
@@ -55,7 +61,7 @@ def reproject(list_fits_files, target_wcs, target_data):
     for file in list_fits_files:
 
         with fits.open(file) as hdu:
-            new_image = rpj.reproject_interp(hdu[1].copy(), target_wcs, shape_out=target_data.shape)[0]
+            new_image = rpj.reproject_interp(hdu[hdu_index].copy(), target_wcs, shape_out=target_data.shape)[0]
             reprojected.append(new_image)
 
     return reprojected
