@@ -26,6 +26,11 @@ import reproject as rpj # needed for reproject module
 sys.path.append('../code')
 from reproject_combine import reproject, images_transform, make_rgb
 
+def get_dictionary(path_to_excel_file):
+    """ Simple function to return dictionary of excel file."""
+    dictionary = pd.read_excel(path_to_excel_file, header=18).to_dict()
+    return dictionary
+
 def get_coordinates(path_to_excel_file, focus):
     """ Reads in excel file into dataframe and gets RA/Dec coordinates of 
     choice source."""
@@ -62,18 +67,18 @@ def pixel_region(pixel_x, pixel_y, x_plusminus=300, y_plusminus=300,
     y_plusminus : int, optional
         The area in pixels to keep to the top and bottom of the focus point. 
         The default is 300.
-    custom_bounds : list, array, optional
+    custom_bounds : list, tuple, array, optional
         If custom cropping is required. List takes the form of:
         custom_bounds = [left, right, bottom, top]. The default is None.
 
     Returns
     -------
-    region : TYPE
-        DESCRIPTION.
+    region : str
+        String of slice objects that can be then evaluated using eval() method.
 
     """
     
-    if isinstance(custom_bounds, (list, np.ndarray)):
+    if isinstance(custom_bounds, (list, tuple, np.ndarray)):
         region = f"slice({pixel_y} - {custom_bounds[2]}, {pixel_y} + {custom_bounds[3]}), \
             slice({pixel_x} - {custom_bounds[0]}, {pixel_x} + {custom_bounds[1]})"
     
