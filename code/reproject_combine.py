@@ -61,6 +61,10 @@ def reproject(list_fits_files, target_wcs, target_data, hdu_index=1):
     for file in list_fits_files:
 
         with fits.open(file) as hdu:
+            if len(hdu) > 1:
+                hdu_index = 1
+            else:
+                hdu_index = 0
             new_image = rpj.reproject_interp(hdu[hdu_index].copy(), target_wcs, shape_out=target_data.shape)[0]
             reprojected.append(new_image)
 
