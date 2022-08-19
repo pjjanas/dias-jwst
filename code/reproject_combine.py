@@ -33,7 +33,7 @@ def plot_image(image, norm=False, axis=True): # convenience function
     if axis==False:
         plt.axis('off')
 
-def reproject(list_fits_files, target_wcs, target_data, hdu_index=1):
+def reproject(list_fits_files, target_wcs, target_data):
     """
     Reprojects and resizes list of fits files onto some target image with WCS 
     information.
@@ -61,10 +61,10 @@ def reproject(list_fits_files, target_wcs, target_data, hdu_index=1):
     for file in list_fits_files:
 
         with fits.open(file) as hdu:
-            if len(hdu) > 1:
+            if len(hdu) > 1: # Uses Image HDU if available
                 hdu_index = 1
             else:
-                hdu_index = 0
+                hdu_index = 0 # Defaults to only HDU available
             new_image = rpj.reproject_interp(hdu[hdu_index].copy(), target_wcs, shape_out=target_data.shape)[0]
             reprojected.append(new_image)
 
