@@ -1,6 +1,8 @@
 # dias-jwst
 Repo for sharing code based files on analysing and carrying out photometry on images from the James Webb Space Telescope (JWST). Currently working on the star forming region of NGC 3324 in the Carina Nebula. Looking for protostellar jets in the surrounding regions, previously masked by molecular clouds. JWST's NIRCam instrument allows us to look through the clouds, uncovering a myriad of young stellar objects (YSOs).
 
+[![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/)
+
 <img src="https://user-images.githubusercontent.com/81090178/185171680-a0304640-aa18-4a93-806c-514d284fd013.png" width=100%, height=100%>
 
 # Dependencies
